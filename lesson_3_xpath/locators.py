@@ -11,6 +11,8 @@ START_FOR_FREE_BUTTON = ("xpath", "//button[contains(@class, 'btn btn-primary bt
 
 # Body
 TITLE = ("xpath", "//h1")
+SUB_TITTLE = ("xpath", "//h2")
+SECOND_SUB_TITTLE = ("xpath", "//p[text()='Find the right one by choosing a specific area of knowledge']")
 CATEGORIES_BUTTONS_LIST = ("xpath", "//div[@class='categories mb-3']/a[contains(@class, 'active-route')]")
 PYTHON_CORE_CARD = ("xpath", "//a[@aria-label='Python Core']")
 PYTHON_CORE_CARD_CERTIFICATE_LABEL = ("xpath", "//a[@aria-label='Python Core']//span[text()=' Certificate ']")
@@ -38,6 +40,8 @@ driver.find_element(*FOR_BUSINESS_BUTTON)
 driver.find_element(*SIGN_IN_BUTTON)
 driver.find_element(*START_FOR_FREE_BUTTON)
 driver.find_element(*TITLE)
+driver.find_element(*SUB_TITTLE)
+driver.find_element(*SECOND_SUB_TITTLE)
 driver.find_elements(*CATEGORIES_BUTTONS_LIST)
 
 driver.find_element(*PYTHON_CORE_CARD)
