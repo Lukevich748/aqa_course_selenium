@@ -38,4 +38,4 @@ wait.until(EC.element_to_be_clickable(DISABLE_BUTTON))
 
 open_an_alert_after_5_seconds_button = driver.find_element(*OPEN_AN_ALERT_AFTER_5_SECONDS_BUTTON)
 open_an_alert_after_5_seconds_button.click()
-wait.until(EC.alert_ispresent())
+wait.until(EC.alert_is_present())
