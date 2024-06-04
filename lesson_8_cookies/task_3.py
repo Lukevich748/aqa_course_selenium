@@ -16,6 +16,8 @@ driver = webdriver.Chrome(options=options)
 
 wait = WebDriverWait(driver=driver, timeout=10, poll_frequency=1)
 
+ACCEPT_COOKIES_LOCATOR = ("xpath", "//button[@aria-label='Соглашаюсь']")
+
 # Cart
 CART_BUTTON_LOCATOR = ("xpath", "//div[@id='userbar']//a[@title='Корзина']")
 ADD_TO_CART_BUTTON_LOCATOR = ("xpath", "//div[contains(@class, 'item_primary')]//a[text()='В корзину']")
@@ -29,6 +31,7 @@ YANDEX_MINI_CARD_LOCATOR = ("xpath", "//div[@class='catalog-offers']//div[@data-
 driver.get("https://www.onliner.by")
 
 wait.until(EC.visibility_of_element_located(LG_ULTRA_GEAR_MONITOR_CARD_LOCATOR)).click()
+wait.until(EC.visibility_of_element_located(ACCEPT_COOKIES_LOCATOR)).click()
 wait.until(EC.visibility_of_element_located(ADD_TO_CART_BUTTON_LOCATOR)).click()
 wait.until(EC.visibility_of_element_located(ITEM_IN_CART_BUTTON))
 driver.back()
