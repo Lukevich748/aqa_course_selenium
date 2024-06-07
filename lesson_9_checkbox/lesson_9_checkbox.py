@@ -20,7 +20,6 @@ def random_item_status_check(count: int):
     """
     Выбирает случайные элементы из списка сетки и проверяет их состояние.
 
-
     :param count: Количество элементов из сетки для проверки их состояния.
     """
     grid_items_list = driver.find_elements(*GRID_ITEMS_LIST_LOCATOR)
