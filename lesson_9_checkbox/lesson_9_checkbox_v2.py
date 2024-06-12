@@ -24,10 +24,10 @@ nine_item_checkbox = wait.until(EC.element_to_be_clickable(get_grid_item_locator
 selected_items = [one_item_checkbox, five_item_checkbox, nine_item_checkbox]
 for item in selected_items:
     item.click()
-    assert "active" in item.get_attribute("class"), f"'{item}' Checkbox is not active"
+    assert "active" in item.get_attribute("class"), f"'{item.text}' Checkbox is not active"
 
 for item in selected_items:
     item.click()
-    assert "active" not in item.get_attribute("class"), f"'{item}' Checkbox is active"
+    assert "active" not in item.get_attribute("class"), f"'{item.text}' Checkbox is active"
 
 driver.quit()
