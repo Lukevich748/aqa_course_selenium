@@ -16,7 +16,7 @@ wait = WebDriverWait(driver=driver, timeout=15, poll_frequency=1)
 
 HYPERSKILL_PRICING_BUTTON_LOCATOR = ("xpath", "//li[@click-event-part='head']/a[contains(text(), 'Pricing')]")
 ONLINER_FORUM_BUTTON_LOCATOR = ("xpath", "//nav[@class='b-top-navigation']//span[contains(text(), 'Форум')]")
-OZON_CATALOG_BUTTON_LOCATOR = ("xpath", "//header[@data-widget='header']//button[@class='b214-a0 b214-b5']")
+VK_ABOUT_BUTTON_LOCATOR = ("xpath", "//div[@id='index_footer_wrap']//a[text()='О ВКонтакте']")
 
 driver.get("https://hyperskill.org/login")
 hyperskill_tab = driver.current_window_handle
@@ -26,8 +26,8 @@ driver.get("https://www.onliner.by")
 onliner_tab = driver.current_window_handle
 
 driver.switch_to.new_window("tab")
-driver.get("https://www.ozon.ru")
-ozon_tab = driver.current_window_handle
+driver.get("https://vk.com")
+vk_tab = driver.current_window_handle
 
 driver.switch_to.window(hyperskill_tab)
 hyperskill_title = driver.title
@@ -37,10 +37,10 @@ driver.switch_to.window(onliner_tab)
 onliner_title = driver.title
 print(onliner_title)
 
-driver.switch_to.window(ozon_tab)
-wait.until(EC.url_to_be("https://www.ozon.ru/?__rr=1&abt_att=1"), "url is not correct")
-ozon_title = driver.title
-print(ozon_title)
+driver.switch_to.window(vk_tab)
+# wait.until(EC.url_to_be("https://www.ozon.ru/?__rr=1&abt_att=1"), "url is not correct")
+vk_title = driver.title
+print(vk_title)
 
 driver.switch_to.window(hyperskill_tab)
 wait.until(EC.element_to_be_clickable(HYPERSKILL_PRICING_BUTTON_LOCATOR), "Element is not clickable").click()
@@ -48,7 +48,7 @@ wait.until(EC.element_to_be_clickable(HYPERSKILL_PRICING_BUTTON_LOCATOR), "Eleme
 driver.switch_to.window(onliner_tab)
 wait.until(EC.element_to_be_clickable(ONLINER_FORUM_BUTTON_LOCATOR), "Element is not clickable").click()
 
-driver.switch_to.window(ozon_tab)
-wait.until(EC.element_to_be_clickable(OZON_CATALOG_BUTTON_LOCATOR), "Element is not clickable").click()
+driver.switch_to.window(vk_tab)
+wait.until(EC.element_to_be_clickable(VK_ABOUT_BUTTON_LOCATOR), "Element is not clickable").click()
 
 driver.quit()
