@@ -36,7 +36,7 @@ def move_slider(slider_locator: tuple, current_point_attr_name: str, target_poin
         slider.send_keys(Keys.ARROW_RIGHT * offset)
 
     current_slider_value = int(driver.find_element(*CURRENT_SLIDER_VALUE_LOCATOR).text)
-    assert target_point == current_slider_value
+    assert target_point == current_slider_value, "Target point is not correct"
 
 
 move_slider(slider_locator=SLIDER_LOCATOR,
