@@ -1,16 +1,31 @@
 from selenium.webdriver.chrome.webdriver import WebDriver
 from selenium.webdriver.remote.webelement import WebElement
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 
 
 class TableHandler:
+
+    # Table
     TABLE_LOCATOR = ("xpath", "//table[@id='example']")
     ROWS_LOCATOR = ("xpath", ".//tr[not(@role='row')]")
     CELLS_LOCATOR = ("xpath", "./td")
     SEARCH_INPUT_LOCATOR = ("xpath", "//input[@type='search']")
+
+    # Buttons
+    NEW_BUTTON_LOCATOR = ("xpath", "//div[@class='dt-buttons']/button[contains(@class, 'buttons-create')]")
     NEXT_BUTTON_LOCATOR = ("xpath", "//button[@aria-label='Next']")
+    CREATE_BUTTON_LOCATOR = ("xpath", "//div[@class='DTE_Footer']//button[@class='btn']")
+
+    # Fields
+    FIRST_NAME_FIELD_LOCATOR = ("xpath", "//div[@class='DTE_Field_Input']//input[@id='DTE_Field_first_name']")
+    LAST_NAME_FIELD_LOCATOR = ("xpath", "//div[@class='DTE_Field_Input']//input[@id='DTE_Field_last_name']")
+    POSITION_FIELD_LOCATOR = ("xpath", "//div[@class='DTE_Field_Input']//input[@id='DTE_Field_position']")
+    SALARY_FIELD_LOCATOR = ("xpath", "//div[@class='DTE_Field_Input']//input[@id='DTE_Field_salary']")
 
     def __init__(self, driver):
         self.driver: WebDriver = driver
+        self.wait: WebDriverWait = WebDriverWait(driver=driver, timeout=10, poll_frequency=1)
 
     @property
     def _table(self) -> WebElement:
@@ -57,11 +72,11 @@ class TableHandler:
         return column_content
 
     def get_content_by_name(self, name: str):
-        while name not in self.get_all_rows_content():
-            self.next_page()
+        while True:
             for row in self._rows:
                 if name in self.get_row_content(self._rows.index(row) + 1):
                     return row.text
+            self.next_page()
 
     def next_page(self):
         return self.driver.find_element(*self.NEXT_BUTTON_LOCATOR).click()
@@ -69,13 +84,31 @@ class TableHandler:
     def search_content(self, name: str):
         self.driver.find_element(*self.SEARCH_INPUT_LOCATOR).send_keys(name)
         result = []
-        for row in self._rows:
-            for cell in row.find_elements(*self.CELLS_LOCATOR):
-                if name in cell.text:
-                    result.append([row.text])
-                    break
+        while True:
+            for row in self._rows:
+                result.append(row.text)
+            if self.driver.find_element(*self.NEXT_BUTTON_LOCATOR).get_attribute("aria-disabled") is None:
+                self.next_page()
+            else:
+                break
+        return result
 
-        if not result:
-            return "No matching records found"
+    def add_content(self, first_name: str, last_name: str, position: str, salary: int):
+        self.wait.until(EC.element_to_be_clickable(self.NEW_BUTTON_LOCATOR)).click()
+        assert self.driver.find_element(*self.CREATE_BUTTON_LOCATOR).is_displayed()
 
+        fields = {
+            self.FIRST_NAME_FIELD_LOCATOR: first_name,
+            self.LAST_NAME_FIELD_LOCATOR: last_name,
+            self.POSITION_FIELD_LOCATOR: position,
+            self.SALARY_FIELD_LOCATOR: str(salary)
+        }
+
+        for locator, value in fields.items():
+            self.driver.find_element(*locator).send_keys(value)
+
+        self.wait.until(EC.element_to_be_clickable(self.CREATE_BUTTON_LOCATOR)).click()
+
+        result = self.search_content(f"{first_name} {last_name}")
+        assert "No matching records found" not in result
         return result
