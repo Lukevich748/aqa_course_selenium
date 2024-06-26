@@ -14,8 +14,10 @@ class TableHandler:
 
     # Buttons
     NEW_BUTTON_LOCATOR = ("xpath", "//div[@class='dt-buttons']/button[contains(@class, 'buttons-create')]")
+    EDIT_BUTTON_LOCATOR = ("xpath", "//div[@class='dt-buttons']//button[contains(@class, 'buttons-edit')]")
     NEXT_BUTTON_LOCATOR = ("xpath", "//button[@aria-label='Next']")
-    CREATE_BUTTON_LOCATOR = ("xpath", "//div[@class='DTE_Footer']//button[@class='btn']")
+    CREATE_BUTTON_LOCATOR = ("xpath", "//div[@class='DTE_Footer']//button[text()='Create']")
+    UPDATE_BUTTON_LOCATOR = ("xpath", "//div[@class='DTE_Footer']//button[text()='Update']")
 
     # Fields
     FIRST_NAME_FIELD_LOCATOR = ("xpath", "//div[@class='DTE_Field_Input']//input[@id='DTE_Field_first_name']")
@@ -86,16 +88,19 @@ class TableHandler:
         result = []
         while True:
             for row in self._rows:
-                result.append(row.text)
+                if row.text == "No matching records found":
+                    return "No matching records found"
+                else:
+                    result.append(row.text)
             if self.driver.find_element(*self.NEXT_BUTTON_LOCATOR).get_attribute("aria-disabled") is None:
                 self.next_page()
             else:
                 break
         return result
 
-    def add_content(self, first_name: str, last_name: str, position: str, salary: int):
+    def add_content(self, first_name: str, last_name: str, position: str = None, salary: int = None):
         self.wait.until(EC.element_to_be_clickable(self.NEW_BUTTON_LOCATOR)).click()
-        assert self.driver.find_element(*self.CREATE_BUTTON_LOCATOR).is_displayed()
+        assert self.driver.find_element(*self.CREATE_BUTTON_LOCATOR).is_displayed(), "Create button is not displayed"
 
         fields = {
             self.FIRST_NAME_FIELD_LOCATOR: first_name,
@@ -110,5 +115,43 @@ class TableHandler:
         self.wait.until(EC.element_to_be_clickable(self.CREATE_BUTTON_LOCATOR)).click()
 
         result = self.search_content(f"{first_name} {last_name}")
-        assert "No matching records found" not in result
+        assert "No matching records found" not in result, "Content was not found"
         return result
+
+    def edit_content(
+            self, search_name: str,
+            new_first_name: str,
+            new_last_name: str,
+            new_position: str = None,
+            new_salary: int = None):
+        search_field = self.driver.find_element(*self.SEARCH_INPUT_LOCATOR)
+        search_field.send_keys(search_name)
+
+        self._rows[0].click()
+
+        self.wait.until(EC.element_to_be_clickable(self.EDIT_BUTTON_LOCATOR)).click()
+        assert self.driver.find_element(*self.UPDATE_BUTTON_LOCATOR).is_displayed(), "Create button is not displayed"
+
+        fields = {
+            self.FIRST_NAME_FIELD_LOCATOR: new_first_name,
+            self.LAST_NAME_FIELD_LOCATOR: new_last_name,
+            self.POSITION_FIELD_LOCATOR: new_position,
+            self.SALARY_FIELD_LOCATOR: str(new_salary)
+        }
+
+        while True:
+            for locator, value in fields.items():
+                if value is not None:
+                    self.driver.find_element(*locator).clear()
+                    self.driver.find_element(*locator).send_keys(value)
+                    assert value == self.driver.find_element(*locator).get_attribute("value")
+                else:
+                    continue
+            self.driver.find_element(*self.UPDATE_BUTTON_LOCATOR).click()
+            break
+
+        search_field.clear()
+
+        search_result = self.search_content(f"{new_first_name} {new_last_name}")
+
+        assert search_result != "No matching records found", "Updated content will not find"
