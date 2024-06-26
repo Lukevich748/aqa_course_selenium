@@ -1,3 +1,5 @@
+import time
+
 from selenium.webdriver.chrome.webdriver import WebDriver
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support.ui import WebDriverWait
@@ -5,7 +7,6 @@ from selenium.webdriver.support import expected_conditions as EC
 
 
 class TableHandler:
-
     # Table
     TABLE_LOCATOR = ("xpath", "//table[@id='example']")
     ROWS_LOCATOR = ("xpath", ".//tr[not(@role='row')]")
@@ -130,7 +131,7 @@ class TableHandler:
         self._rows[0].click()
 
         self.wait.until(EC.element_to_be_clickable(self.EDIT_BUTTON_LOCATOR)).click()
-        assert self.driver.find_element(*self.UPDATE_BUTTON_LOCATOR).is_displayed(), "Create button is not displayed"
+        assert self.driver.find_element(*self.UPDATE_BUTTON_LOCATOR).is_displayed(), "Update button is not displayed"
 
         fields = {
             self.FIRST_NAME_FIELD_LOCATOR: new_first_name,
@@ -150,8 +151,10 @@ class TableHandler:
             self.driver.find_element(*self.UPDATE_BUTTON_LOCATOR).click()
             break
 
+        self.wait.until(EC.invisibility_of_element(self.UPDATE_BUTTON_LOCATOR), "Update button is displayed")
         search_field.clear()
 
         search_result = self.search_content(f"{new_first_name} {new_last_name}")
 
         assert search_result != "No matching records found", "Updated content will not find"
+        return search_result
