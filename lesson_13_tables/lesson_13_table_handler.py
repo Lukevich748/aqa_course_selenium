@@ -16,7 +16,7 @@ class TableHandler:
     # button_name = [create, edit, remove]
     table_button_locator = lambda self, button_name: ("xpath", f"//div[@class='dt-buttons']/button[contains(@class, 'buttons-{button_name}')]")
 
-    # Pagination buttons
+    # Pagination Buttons
     NEXT_BUTTON_LOCATOR = ("xpath", "//button[@aria-label='Next']")
 
     # Pop-Up Buttons
@@ -121,7 +121,6 @@ class TableHandler:
         }
 
         for locator, value in fields.items():
-            time.sleep(1)
             self.driver.find_element(*locator).send_keys(value)
 
         self.wait.until(EC.element_to_be_clickable(self.pop_up_button_locator("Create"))).click()
