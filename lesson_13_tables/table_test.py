@@ -11,7 +11,26 @@ table = TableHandler(driver)
 driver.get("https://editor.datatables.net/examples/extensions/responsive.html")
 
 # table.get_content_by_name("Timothy Mooney")
+
 # print(table.search_content("New York"))
-# print(table.add_content("Artem", "Lukevich", "AQA"))
-# print(table.edit_content("Caesar Vance", "Artem", "Lukevich", "AQA", 9000))
+
+# print(table.add_content(
+#     first_name="Artem",
+#     last_name="Lukevich",
+#     position="AQA",
+#     office="Warsaw",
+#     extn=1488,
+#     start_date="2024-06-27",
+#     salary=5325))
+
+# print(table.edit_content(
+#     search_name="Caesar Vance",
+#     new_first_name="Artem",
+#     new_last_name="Lukevich",
+#     position="AQA",
+#     office="Warsaw",
+#     extn=1488,
+#     start_date="2024-06-27",
+#     salary=5325))
+
 # print(table.delete_content("Caesar Vance"))
