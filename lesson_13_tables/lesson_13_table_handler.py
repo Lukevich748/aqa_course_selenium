@@ -12,18 +12,21 @@ class TableHandler:
     CELLS_LOCATOR = ("xpath", "./td")
     SEARCH_INPUT_LOCATOR = ("xpath", "//input[@type='search']")
 
-    # Buttons
-    NEW_BUTTON_LOCATOR = ("xpath", "//div[@class='dt-buttons']/button[contains(@class, 'buttons-create')]")
-    EDIT_BUTTON_LOCATOR = ("xpath", "//div[@class='dt-buttons']//button[contains(@class, 'buttons-edit')]")
-    NEXT_BUTTON_LOCATOR = ("xpath", "//button[@aria-label='Next']")
-    CREATE_BUTTON_LOCATOR = ("xpath", "//div[@class='DTE_Footer']//button[text()='Create']")
-    UPDATE_BUTTON_LOCATOR = ("xpath", "//div[@class='DTE_Footer']//button[text()='Update']")
+    # Table Buttons
+    # button_name = [create, edit, remove]
+    table_button_locator = lambda self, button_name: ("xpath", f"//div[@class='dt-buttons']/button[contains(@class, 'buttons-{button_name}')]")
 
-    # Fields
-    FIRST_NAME_FIELD_LOCATOR = ("xpath", "//div[@class='DTE_Field_Input']//input[@id='DTE_Field_first_name']")
-    LAST_NAME_FIELD_LOCATOR = ("xpath", "//div[@class='DTE_Field_Input']//input[@id='DTE_Field_last_name']")
-    POSITION_FIELD_LOCATOR = ("xpath", "//div[@class='DTE_Field_Input']//input[@id='DTE_Field_position']")
-    SALARY_FIELD_LOCATOR = ("xpath", "//div[@class='DTE_Field_Input']//input[@id='DTE_Field_salary']")
+    # Pagination buttons
+    NEXT_BUTTON_LOCATOR = ("xpath", "//button[@aria-label='Next']")
+
+    # Pop-Up Buttons
+    # button_name = [Create, Update, Delete]
+    pop_up_button_locator = lambda self, button_name: ("xpath", f"//div[@class='DTE_Footer']//button[text()='{button_name}']")
+    DELETE_POPUP_INFO_LOCATOR = ("xpath", "//div[@class='DTED_Lightbox_Content']//div[@class='DTE_Form_Info']")
+
+    # Pop-Up Fields
+    # field_name = [first_name, last_name, position, office, extn, start_date, salary]
+    field_locator = lambda self, field_name: ("xpath", f"//div[@class='DTE_Field_Input']//input[@id='DTE_Field_{field_name}']")
 
     def __init__(self, driver):
         self.driver: WebDriver = driver
@@ -85,17 +88,20 @@ class TableHandler:
 
     def search_content(self, name: str) -> list[str] | str:
         self.driver.find_element(*self.SEARCH_INPUT_LOCATOR).send_keys(name)
+
         result = []
         while True:
-            for row in self._rows:
-                if row.text == "No matching records found":
-                    return "No matching records found"
-                else:
-                    result.append(row.text)
-            if self.driver.find_element(*self.NEXT_BUTTON_LOCATOR).get_attribute("aria-disabled") is None:
-                self.next_page()
-            else:
+            if any(row.text == "No matching records found" for row in self._rows):
+                return "No matching records found."
+
+            result.extend(row.text for row in self._rows)
+
+            next_button = self.driver.find_element(*self.NEXT_BUTTON_LOCATOR)
+            if next_button.get_attribute("aria-disabled"):
                 break
+
+            next_button.click()
+
         return result
 
     def add_content(
@@ -103,25 +109,27 @@ class TableHandler:
             first_name: str,
             last_name: str,
             position: str = None,
-            salary: int = None) -> list[str]:
-        self.wait.until(EC.element_to_be_clickable(self.NEW_BUTTON_LOCATOR)).click()
-        assert self.driver.find_element(*self.CREATE_BUTTON_LOCATOR).is_displayed(), "Create button is not displayed"
+            salary: int = None) -> str:
+        self.wait.until(EC.element_to_be_clickable(self.table_button_locator("create"))).click()
+        assert self.driver.find_element(*self.pop_up_button_locator("Create")).is_displayed(), "Create button is not displayed."
 
         fields = {
-            self.FIRST_NAME_FIELD_LOCATOR: first_name,
-            self.LAST_NAME_FIELD_LOCATOR: last_name,
-            self.POSITION_FIELD_LOCATOR: position,
-            self.SALARY_FIELD_LOCATOR: str(salary)
+            self.field_locator("first_name"): first_name,
+            self.field_locator("last_name"): last_name,
+            self.field_locator("position"): position,
+            self.field_locator("salary"): str(salary)
         }
 
         for locator, value in fields.items():
+            time.sleep(1)
             self.driver.find_element(*locator).send_keys(value)
 
-        self.wait.until(EC.element_to_be_clickable(self.CREATE_BUTTON_LOCATOR)).click()
+        self.wait.until(EC.element_to_be_clickable(self.pop_up_button_locator("Create"))).click()
+        self.wait.until(EC.invisibility_of_element(self.pop_up_button_locator("Create")))
 
         result = self.search_content(f"{first_name} {last_name}")
-        assert "No matching records found" not in result, "Content was not found"
-        return result
+        assert "No matching records found" not in result, "Content was not found."
+        return f"Person '{result}' has been added."
 
     def edit_content(
             self,
@@ -129,38 +137,52 @@ class TableHandler:
             new_first_name: str,
             new_last_name: str,
             new_position: str = None,
-            new_salary: int = None):
+            new_salary: int = None) -> str:
         search_field = self.driver.find_element(*self.SEARCH_INPUT_LOCATOR)
         search_field.send_keys(search_name)
 
         self._rows[0].click()
 
-        self.wait.until(EC.element_to_be_clickable(self.EDIT_BUTTON_LOCATOR)).click()
-        assert self.driver.find_element(*self.UPDATE_BUTTON_LOCATOR).is_displayed(), "Update button is not displayed"
+        self.wait.until(EC.element_to_be_clickable(self.table_button_locator("edit"))).click()
+        assert self.driver.find_element(*self.pop_up_button_locator("Update")).is_displayed(), "Update button is not displayed."
 
         fields = {
-            self.FIRST_NAME_FIELD_LOCATOR: new_first_name,
-            self.LAST_NAME_FIELD_LOCATOR: new_last_name,
-            self.POSITION_FIELD_LOCATOR: new_position,
-            self.SALARY_FIELD_LOCATOR: str(new_salary)
+            self.field_locator("first_name"): new_first_name,
+            self.field_locator("last_name"): new_last_name,
+            self.field_locator("position"): new_position,
+            self.field_locator("salary"): str(new_salary),
         }
 
-        while True:
-            for locator, value in fields.items():
-                if value is not None:
-                    self.driver.find_element(*locator).clear()
-                    self.driver.find_element(*locator).send_keys(value)
-                    assert value == self.driver.find_element(*locator).get_attribute("value"), \
-                        "The actual value does not match the expected value"
-                else:
-                    continue
-            self.driver.find_element(*self.UPDATE_BUTTON_LOCATOR).click()
-            break
+        for locator, value in fields.items():
+            if value is not None:
+                element = self.driver.find_element(*locator)
+                element.clear()
+                element.send_keys(value)
+                assert value == element.get_attribute("value"), "The actual value does not match the expected value."
 
-        self.wait.until(EC.invisibility_of_element(self.UPDATE_BUTTON_LOCATOR), "Update button is displayed")
+        self.wait.until(EC.element_to_be_clickable(self.pop_up_button_locator("Update"))).click()
+        self.wait.until(EC.invisibility_of_element(self.pop_up_button_locator("Update")), "Update button is displayed.")
+
         search_field.clear()
 
-        search_result = self.search_content(f"{new_first_name} {new_last_name}")
+        result = self.search_content(f"{new_first_name} {new_last_name}")
+        assert result != "No matching records found", "Updated content will not find."
 
-        assert search_result != "No matching records found", "Updated content will not find"
-        return search_result
+        return f"Person '{result}' has been updated."
+
+    def delete_content(self, search_name: str) -> str:
+        search_field = self.driver.find_element(*self.SEARCH_INPUT_LOCATOR)
+        search_field.send_keys(search_name)
+
+        self._rows[0].click()
+
+        self.wait.until(EC.element_to_be_clickable(self.table_button_locator("remove"))).click()
+        assert self.driver.find_element(*self.DELETE_POPUP_INFO_LOCATOR).text == "Are you sure you wish to delete 1 row?"
+
+        self.wait.until(EC.element_to_be_clickable(self.pop_up_button_locator("Delete"))).click()
+        self.wait.until(EC.invisibility_of_element(self.DELETE_POPUP_INFO_LOCATOR))
+
+        for row in self._rows:
+            assert row.text == "No matching records found"
+
+        return f"Person '{search_name}' has been deleted."
